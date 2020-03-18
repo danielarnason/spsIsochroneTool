@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tool>
+	<cbinfo-metadata>
+		<param name="tool.help.text"><![CDATA[Hjælpeteksten til mit tool]]></param>
+	</cbinfo-metadata>
+
+	<onclick>isochroneTool.showDialog();</onclick>
+
+	<displayname><![CDATA[Kørselstid]]></displayname>
+	<tooltip><![CDATA[Hvor langt kan jeg køre på X minutter]]></tooltip>
+	<description><![CDATA[Værktøj til at beregne kørsels isochroner. Returnerer en polygon, som viser det areal man kan nå til på en given tid.]]></description>
+
+	<jssrc><![CDATA[
+isochroneTool = {
+
+	dialog: null,
+
+	createDialog: function() {
+		this.dialog = new spatialmap.gui.Dialog({
+			title: 'Kørselstid',
+			id: "isochroneTool",
+		});
+		this.dialog.addContentHTML("<div id='isochroneToolContent'> <label for='xcoord'>X koordinat: </label> <input type='text' id='xcoord' name='xcoord'><br> <label for='ycoord'>Y koordinat: </label> <input type='text' id='ycoord' name='ycoord'><br><label for='tid'>Tid: </label> <input type='text' id='tid' name='tid'><br> <button id='calculateIsochrone'>Beregn kørselstid</button></div>")
+	},
+
+	showDialog: function() {
+		if (!this.dialog) {
+			this.createDialog();
+		}
+		this.dialog.show();
+		jQuery('#calculateIsochrone').click(function () {
+			var x = jQuery('#xcoord').val();
+			var y = jQuery('#ycoord').val();
+			var tid = jQuery('#tid').val();
+			var ds = spm.getSession().getDatasource("afstand_isochron_concavehull");
+			ds.execute({command: 'read-isochron', x: x, y: y, cost: tid}, function(resp) {
+				var wkt = resp[0].shape_wkt.wkt;
+				cbKort.dynamicLayers.layers[0].deleteFeatures();
+				cbKort.dynamicLayers.addWKT({wkt: wkt});
+			});
+		}.bind(this));
+	},
+}
+		]]>
+	</jssrc>
+</tool>
